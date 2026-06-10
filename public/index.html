@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GOLDBET</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand__logo">🎮</div>
+          <span class="brand__name">GOLDBET</span>
+        </div>
+
+        <nav class="nav">
+          <div class="nav__label">Games</div>
+          <a class="nav__item is-active" data-view="crash" href="#crash">
+            <span class="nav__icon">📈</span> Crash
+          </a>
+          <a class="nav__item" data-view="roulette" href="#roulette">
+            <span class="nav__icon">🎯</span> Roulette
+          </a>
+          <a class="nav__item" data-view="blackjack" href="#blackjack">
+            <span class="nav__icon">🃏</span> Blackjack
+          </a>
+
+          <div class="nav__label">Community</div>
+          <a class="nav__item" data-view="leaderboard" href="#leaderboard">
+            <span class="nav__icon">🏆</span> Leaderboard
+          </a>
+          <a class="nav__item" data-view="rewards" href="#rewards">
+            <span class="nav__icon">🎁</span> Rewards
+          </a>
+        </nav>
+
+        <div class="sidebar__footer">
+          <span class="nav__icon">💬</span> Live Chat
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <div class="main">
+        <header class="topbar">
+          <div class="search">
+            <span class="search__icon">🔍</span>
+            <input type="text" placeholder="Search games..." />
+          </div>
+
+          <div class="topbar__right">
+            <div class="balance-pill" id="balancePill" hidden>
+              <span class="balance-pill__icon">💰</span>
+              <span class="balance-pill__amount" id="balanceAmount">0.00</span>
+            </div>
+            <button class="btn btn--ghost" id="loginBtn">Log in</button>
+            <button class="btn btn--primary" id="registerBtn">Sign up</button>
+            <button class="avatar" id="avatarBtn" hidden title="Account">
+              <span id="avatarInitial">U</span>
+            </button>
+          </div>
+        </header>
+
+        <main class="content" id="content">
+          <!-- Views are rendered here by app.js -->
+        </main>
+      </div>
+    </div>
+
+    <!-- Auth modal -->
+    <div class="modal" id="authModal" hidden>
+      <div class="modal__backdrop" data-close></div>
+      <div class="modal__card">
+        <button class="modal__close" data-close>&times;</button>
+        <h2 class="modal__title" id="authTitle">Log in</h2>
+        <p class="modal__subtitle">Play with virtual coins. No real money.</p>
+
+        <form id="authForm" class="form">
+          <label class="form__field">
+            <span>Username</span>
+            <input type="text" id="username" autocomplete="username" required />
+          </label>
+          <label class="form__field">
+            <span>Password</span>
+            <input type="password" id="password" autocomplete="current-password" required />
+          </label>
+          <p class="form__error" id="authError" hidden></p>
+          <button type="submit" class="btn btn--primary btn--block" id="authSubmit">Log in</button>
+        </form>
+
+        <p class="modal__switch">
+          <span id="switchText">Don't have an account?</span>
+          <a href="#" id="switchLink">Sign up</a>
+        </p>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>
