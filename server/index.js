@@ -6,8 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { config } from './config.js';
-import { authenticate, requireAuth, authRouter } from './auth.js';
+import { authenticate, requireAuth, authRouter, getUserFromCookieHeader } from './auth.js';
 import { getUserById } from './users.js';
+import { initCrash } from './crash.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
@@ -43,10 +44,19 @@ app.get('*', (req, res, next) => {
   res.sendFile(join(publicDir, 'index.html'));
 });
 
-// --- Realtime (used by games like Crash later) ---
+// --- Realtime ---
+// Attach the logged-in user (if any) to each socket from its auth cookie.
+io.use((socket, next) => {
+  socket.data.user = getUserFromCookieHeader(socket.handshake.headers.cookie);
+  next();
+});
+
 io.on('connection', (socket) => {
   socket.emit('server:hello', { message: 'connected' });
 });
+
+// Crash: one shared, server-authoritative round broadcast to all clients.
+initCrash(io);
 
 httpServer.listen(config.port, () => {
   console.log(`GOLDBET server running on http://localhost:${config.port}`);

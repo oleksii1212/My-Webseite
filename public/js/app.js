@@ -1,9 +1,15 @@
 // GOLDBET frontend shell: auth, balance, simple view router.
 
+import { mountCrash } from './crash.js';
+
 const state = {
   user: null,
   authMode: 'login', // 'login' | 'register'
 };
+
+// Single shared realtime connection, reused by games.
+const socket = window.io ? window.io() : null;
+let unmountView = null;
 
 const el = {
   loginBtn: document.getElementById('loginBtn'),
@@ -58,6 +64,14 @@ function closeModal() {
   el.modal.hidden = true;
 }
 
+// Re-handshake the realtime socket so the server re-reads the auth cookie
+// (the socket identity is fixed at connection time).
+function reconnectSocket() {
+  if (!socket) return;
+  socket.disconnect();
+  socket.connect();
+}
+
 function setUser(user) {
   state.user = user;
   const loggedIn = Boolean(user);
@@ -84,40 +98,6 @@ async function refreshBalance() {
 
 // ---------- Views ----------
 const views = {
-  crash: () => `
-    <section class="hero">
-      <h1>Welcome to GOLDBET 🎮</h1>
-      <p>
-        A casino-style playground that runs entirely on <strong>virtual coins</strong> — no real
-        money involved. The foundation (accounts &amp; balances) is live. Games are coming next.
-      </p>
-      ${
-        state.user
-          ? `<p>Logged in as <strong>${state.user.username}</strong>. Balance: <strong>${formatCoins(state.user.balance)}</strong> coins.</p>`
-          : `<button class="btn btn--primary" id="heroSignup">Create a free account</button>`
-      }
-      <div class="cards">
-        <div class="game-card" data-view="crash">
-          <div class="game-card__icon">📈</div>
-          <div class="game-card__title">Crash</div>
-          <div class="game-card__desc">Watch the multiplier rise — cash out before it crashes.</div>
-          <span class="badge-soon">In development</span>
-        </div>
-        <div class="game-card" data-view="roulette">
-          <div class="game-card__icon">🎯</div>
-          <div class="game-card__title">Roulette</div>
-          <div class="game-card__desc">Place your bets and spin the wheel.</div>
-          <span class="badge-soon">Coming soon</span>
-        </div>
-        <div class="game-card" data-view="blackjack">
-          <div class="game-card__icon">🃏</div>
-          <div class="game-card__title">Blackjack</div>
-          <div class="game-card__desc">Beat the dealer to 21.</div>
-          <span class="badge-soon">Coming soon</span>
-        </div>
-      </div>
-    </section>
-  `,
   placeholder: (title) => `
     <div class="placeholder">
       <div>
@@ -131,11 +111,17 @@ const views = {
 
 function renderView(name) {
   el.navItems.forEach((item) => item.classList.toggle('is-active', item.dataset.view === name));
-  if (name === 'crash') {
-    el.content.innerHTML = views.crash();
-    const heroSignup = document.getElementById('heroSignup');
-    if (heroSignup) heroSignup.addEventListener('click', () => openModal('register'));
-    bindCardNav();
+  if (unmountView) {
+    unmountView();
+    unmountView = null;
+  }
+  if (name === 'crash' && socket) {
+    unmountView = mountCrash(el.content, {
+      socket,
+      getUser: () => state.user,
+      formatCoins,
+      openModal,
+    });
   } else {
     const titles = {
       roulette: 'Roulette',
@@ -145,12 +131,6 @@ function renderView(name) {
     };
     el.content.innerHTML = views.placeholder(titles[name] || 'Page');
   }
-}
-
-function bindCardNav() {
-  document.querySelectorAll('.game-card').forEach((card) => {
-    card.addEventListener('click', () => navigate(card.dataset.view));
-  });
 }
 
 function navigate(view) {
@@ -170,6 +150,7 @@ el.switchLink.addEventListener('click', (e) => {
 el.avatarBtn.addEventListener('click', async () => {
   await api('/api/auth/logout', { method: 'POST' });
   setUser(null);
+  reconnectSocket();
   renderView(currentView());
 });
 
@@ -185,6 +166,7 @@ el.authForm.addEventListener('submit', async (e) => {
     const { user } = await api(path, { method: 'POST', body });
     setUser(user);
     closeModal();
+    reconnectSocket();
     renderView(currentView());
   } catch (err) {
     el.authError.textContent = err.message;
@@ -209,10 +191,13 @@ window.addEventListener('hashchange', () => renderView(currentView()));
 window.addEventListener('focus', refreshBalance);
 
 // ---------- Realtime ----------
-if (window.io) {
-  const socket = window.io();
-  socket.on('server:hello', () => {
-    /* foundation: connection established; games will use this later */
+if (socket) {
+  // The Crash engine pushes an authoritative balance whenever it changes
+  // (bet placed, cashed out, busted). Keep the topbar in sync everywhere.
+  socket.on('crash:balance', ({ balance }) => {
+    if (!state.user) return;
+    state.user.balance = balance;
+    el.balanceAmount.textContent = formatCoins(balance);
   });
 }
 
