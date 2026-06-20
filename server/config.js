@@ -17,4 +17,11 @@ export const config = {
     maxBet: 10000, // max coins per bet
     historySize: 20, // recent crash points kept for the history strip
   },
+  roulette: {
+    bettingMs: 12000, // how long players can place bets each round
+    spinningMs: 6000, // wheel/reel animation length (number is revealed now)
+    resultMs: 5000, // how long the result stays on screen before the next round
+    maxBet: 10000, // max coins per single bet
+    historySize: 18, // recent winning numbers kept for the history strip
+  },
 };

@@ -1,9 +1,9 @@
 # GOLDBET
 
 A casino-style web app that runs entirely on **virtual coins** — no real money is involved.
-This repository is built step by step as a learning project. This first milestone is the
-**foundation**: the site shell, user accounts (register / login), and a server-authoritative
-virtual balance. Games (Crash, Roulette, Blackjack) are added in later milestones.
+This repository is built step by step as a learning project. It includes the site shell with a
+home lobby, user accounts (register / login), a server-authoritative virtual balance, and two
+real-time games so far: **Crash** and **Roulette**. Blackjack is planned next.
 
 ## Tech stack
 
@@ -60,10 +60,14 @@ server/         Backend (Express + Socket.IO)
   db.js           SQLite connection & schema
   users.js        User + balance logic (ledger-backed)
   auth.js         Register / login / logout, auth middleware
+  crash.js        Crash game engine (shared real-time round)
+  roulette.js     Roulette game engine (shared real-time round)
 public/         Frontend (served as static files)
   index.html      App shell (sidebar, topbar, auth modal)
   css/style.css   Dark theme
-  js/app.js       Auth flow, balance display, view router
+  js/app.js       Auth flow, balance display, home lobby, view router
+  js/crash.js     Crash game view
+  js/roulette.js  Roulette game view
 data/           SQLite database file (created at runtime, git-ignored)
 ```
 
@@ -76,8 +80,8 @@ data/           SQLite database file (created at runtime, git-ignored)
 
 ## Roadmap
 
-1. **Foundation** — accounts, balances, site shell ✅ (this milestone)
-2. **Crash** — realtime multiplier game
-3. **Roulette**
+1. **Foundation** — accounts, balances, site shell ✅
+2. **Crash** — realtime multiplier game ✅
+3. **Roulette** — realtime European roulette ✅
 4. **Blackjack**
 5. Profile, game history, leaderboard

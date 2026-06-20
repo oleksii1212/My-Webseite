@@ -315,6 +315,67 @@ a {
   margin-top: 10px;
 }
 
+.badge-live {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(0, 224, 138, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 10px;
+}
+
+/* Make the sidebar brand act as a clickable home link. */
+.brand {
+  cursor: pointer;
+}
+
+/* Lobby / home */
+.section-title {
+  margin: 28px 0 14px;
+  font-size: 18px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.step__num {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0, 224, 138, 0.12);
+  color: var(--accent);
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.step strong {
+  font-size: 15px;
+}
+
+.step p {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .placeholder {
   display: grid;
   place-items: center;
@@ -746,5 +807,322 @@ a {
   }
   .crash__multiplier {
     font-size: 48px;
+  }
+}
+
+/* ---------- Roulette game ---------- */
+.roul {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 18px;
+  align-items: start;
+}
+
+.roul__main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.roul__history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rhist {
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 26px;
+  text-align: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: #fff;
+}
+.rhist.is-red {
+  background: #c0392b;
+}
+.rhist.is-black {
+  background: #1f2733;
+  border: 1px solid var(--border);
+}
+.rhist.is-green {
+  background: var(--accent-dim);
+  color: #04150e;
+}
+
+/* Reel */
+.roul__reel {
+  position: relative;
+  height: 86px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.roul__track {
+  display: flex;
+  will-change: transform;
+}
+
+.rt {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  margin-right: 8px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 22px;
+  color: #fff;
+}
+.rt.is-red {
+  background: #c0392b;
+}
+.rt.is-black {
+  background: #1f2733;
+  border: 1px solid #2c3852;
+}
+.rt.is-green {
+  background: var(--accent-dim);
+  color: #04150e;
+}
+
+.roul__pointer {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  transform: translateX(-50%);
+  background: var(--gold);
+  box-shadow: 0 0 12px rgba(245, 179, 1, 0.8);
+  z-index: 3;
+}
+
+.roul__result {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%) scale(0.6);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 4;
+}
+.roul__result.is-show {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+.roul__result.is-red {
+  background: #c0392b;
+}
+.roul__result.is-black {
+  background: #1f2733;
+  border: 1px solid var(--border);
+}
+.roul__result.is-green {
+  background: var(--accent-dim);
+  color: #04150e;
+}
+
+.roul__status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+.roul__phase {
+  color: var(--text-dim);
+}
+.roul__phase.is-betting {
+  color: var(--gold);
+}
+.roul__phase.is-spinning {
+  color: var(--accent);
+}
+.roul__phase.is-red {
+  color: #ff7a6b;
+}
+.roul__phase.is-black {
+  color: var(--text);
+}
+.roul__phase.is-green {
+  color: var(--accent);
+}
+.roul__fair {
+  color: var(--text-dim);
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+/* Betting board */
+.rboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rboard.is-locked {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.rboard__numbers {
+  display: flex;
+  gap: 8px;
+}
+
+.rboard__zero {
+  display: flex;
+}
+.rboard__zero .rcell--zero {
+  width: 46px;
+  height: auto;
+}
+
+.rboard__grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rboard__row {
+  display: flex;
+  gap: 6px;
+}
+.rboard__grid .rcell {
+  flex: 1;
+}
+
+.rcell {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 10px 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.05s, filter 0.15s, box-shadow 0.15s;
+}
+.rcell:hover {
+  filter: brightness(1.12);
+}
+.rcell:active {
+  transform: translateY(1px);
+}
+.rcell.is-red {
+  background: #c0392b;
+}
+.rcell.is-black {
+  background: #1f2733;
+}
+.rcell.is-green {
+  background: var(--accent-dim);
+  color: #04150e;
+}
+.rcell:not(.is-red):not(.is-black):not(.is-green) {
+  background: var(--bg-elev-2);
+  color: var(--text);
+}
+
+.rcell--wide {
+  flex: 1;
+}
+.rboard__dozens,
+.rboard__outside {
+  display: flex;
+  gap: 6px;
+}
+
+.rcell.is-winner {
+  box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(245, 179, 1, 0.7);
+  z-index: 1;
+}
+
+.rcell__chip {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #181203;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.rcell__chip[hidden] {
+  display: none;
+}
+
+#roulStaked {
+  cursor: default;
+}
+
+/* Roulette live players table (3 columns) */
+.roul__thead,
+.rprow {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 6px;
+  align-items: center;
+}
+.roul__thead {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  padding: 0 8px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.rprow {
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+.rprow + .rprow {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+.rprow.is-won .prow__cash {
+  color: var(--accent);
+}
+.rprow.is-lost {
+  color: var(--text-dim);
+}
+.rprow.is-lost .prow__cash {
+  color: var(--danger);
+}
+.rprow.is-mine {
+  background: rgba(0, 224, 138, 0.08);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+@media (max-width: 980px) {
+  .roul {
+    grid-template-columns: 1fr;
+  }
+  .roul .crash__side {
+    position: static;
   }
 }
