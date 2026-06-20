@@ -1,6 +1,7 @@
 // GOLDBET frontend shell: auth, balance, simple view router.
 
 import { mountCrash } from './crash.js';
+import { mountRoulette } from './roulette.js';
 
 const state = {
   user: null,
@@ -29,7 +30,32 @@ const el = {
   switchText: document.getElementById('switchText'),
   switchLink: document.getElementById('switchLink'),
   navItems: [...document.querySelectorAll('.nav__item')],
+  brand: document.getElementById('brandHome'),
 };
+
+const GAMES = [
+  {
+    view: 'crash',
+    icon: '\uD83D\uDCC8',
+    title: 'Crash',
+    desc: 'Watch the multiplier rise \u2014 cash out before it crashes.',
+    status: 'live',
+  },
+  {
+    view: 'roulette',
+    icon: '\uD83C\uDFAF',
+    title: 'Roulette',
+    desc: 'Bet on numbers or colors and watch the wheel spin.',
+    status: 'live',
+  },
+  {
+    view: 'blackjack',
+    icon: '\uD83C\uDCCF',
+    title: 'Blackjack',
+    desc: 'Beat the dealer to 21.',
+    status: 'soon',
+  },
+];
 
 // ---------- API helpers ----------
 async function api(path, options = {}) {
@@ -107,6 +133,46 @@ const views = {
       </div>
     </div>
   `,
+  home: () => {
+    const user = state.user;
+    const cards = GAMES.map(
+      (g) => `
+        <div class="game-card" data-view="${g.view}">
+          <div class="game-card__icon">${g.icon}</div>
+          <div class="game-card__title">${g.title}</div>
+          <div class="game-card__desc">${g.desc}</div>
+          ${
+            g.status === 'live'
+              ? '<span class="badge-live">\u25CF Live now</span>'
+              : '<span class="badge-soon">Coming soon</span>'
+          }
+        </div>`,
+    ).join('');
+    return `
+      <section class="hero">
+        <h1>Welcome to GOLDBET \uD83C\uDFAE</h1>
+        <p>
+          A casino-style playground that runs entirely on <strong>virtual coins</strong> \u2014 no real
+          money involved. Pick a game below and play.
+        </p>
+        ${
+          user
+            ? `<p>Logged in as <strong>${escapeHtml(user.username)}</strong> \u00B7 balance <strong>${formatCoins(user.balance)}</strong> coins.</p>`
+            : '<button class="btn btn--primary" id="heroSignup">Create a free account</button>'
+        }
+      </section>
+
+      <h2 class="section-title">Games</h2>
+      <div class="cards">${cards}</div>
+
+      <h2 class="section-title">How it works</h2>
+      <div class="steps">
+        <div class="step"><div class="step__num">1</div><div><strong>Sign up free</strong><p>Get 1000 virtual coins instantly. No real money, ever.</p></div></div>
+        <div class="step"><div class="step__num">2</div><div><strong>Pick a game</strong><p>Crash and Roulette run live, shared rounds with other players.</p></div></div>
+        <div class="step"><div class="step__num">3</div><div><strong>Place your bets</strong><p>Every result is decided on the server and provably fair.</p></div></div>
+      </div>
+    `;
+  },
 };
 
 function renderView(name) {
@@ -115,20 +181,20 @@ function renderView(name) {
     unmountView();
     unmountView = null;
   }
+  const gameDeps = { socket, getUser: () => state.user, formatCoins, openModal };
   if (name === 'crash' && socket) {
-    unmountView = mountCrash(el.content, {
-      socket,
-      getUser: () => state.user,
-      formatCoins,
-      openModal,
-    });
+    unmountView = mountCrash(el.content, gameDeps);
+  } else if (name === 'roulette' && socket) {
+    unmountView = mountRoulette(el.content, gameDeps);
+  } else if (name === 'home') {
+    el.content.innerHTML = views.home();
+    const heroSignup = el.content.querySelector('#heroSignup');
+    if (heroSignup) heroSignup.addEventListener('click', () => openModal('register'));
+    el.content.querySelectorAll('.game-card').forEach((card) =>
+      card.addEventListener('click', () => navigate(card.dataset.view)),
+    );
   } else {
-    const titles = {
-      roulette: 'Roulette',
-      blackjack: 'Blackjack',
-      leaderboard: 'Leaderboard',
-      rewards: 'Rewards',
-    };
+    const titles = { blackjack: 'Blackjack', leaderboard: 'Leaderboard', rewards: 'Rewards' };
     el.content.innerHTML = views.placeholder(titles[name] || 'Page');
   }
 }
@@ -181,8 +247,22 @@ el.navItems.forEach((item) => {
   });
 });
 
+if (el.brand) {
+  el.brand.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigate('home');
+  });
+}
+
 function currentView() {
-  return (location.hash || '#crash').slice(1);
+  return (location.hash || '#home').slice(1);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+  );
 }
 
 window.addEventListener('hashchange', () => renderView(currentView()));
@@ -192,13 +272,15 @@ window.addEventListener('focus', refreshBalance);
 
 // ---------- Realtime ----------
 if (socket) {
-  // The Crash engine pushes an authoritative balance whenever it changes
-  // (bet placed, cashed out, busted). Keep the topbar in sync everywhere.
-  socket.on('crash:balance', ({ balance }) => {
+  // Games push an authoritative balance whenever it changes (bet, win, refund).
+  // Keep the topbar in sync everywhere.
+  const onBalance = ({ balance }) => {
     if (!state.user) return;
     state.user.balance = balance;
     el.balanceAmount.textContent = formatCoins(balance);
-  });
+  };
+  socket.on('crash:balance', onBalance);
+  socket.on('roulette:balance', onBalance);
 }
 
 // ---------- Boot ----------
