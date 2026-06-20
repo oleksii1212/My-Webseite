@@ -15,14 +15,18 @@
     <div class="layout">
       <!-- Sidebar -->
       <aside class="sidebar">
-        <div class="brand">
+        <a class="brand" id="brandHome" href="#home" title="Home">
           <div class="brand__logo">🎮</div>
           <span class="brand__name">GOLDBET</span>
-        </div>
+        </a>
 
         <nav class="nav">
+          <a class="nav__item" data-view="home" href="#home">
+            <span class="nav__icon">🏠</span> Home
+          </a>
+
           <div class="nav__label">Games</div>
-          <a class="nav__item is-active" data-view="crash" href="#crash">
+          <a class="nav__item" data-view="crash" href="#crash">
             <span class="nav__icon">📈</span> Crash
           </a>
           <a class="nav__item" data-view="roulette" href="#roulette">

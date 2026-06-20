@@ -39,4 +39,14 @@ db.exec(`
     hash        TEXT NOT NULL,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- One row per completed Roulette round (provably fair: the hash is shown
+  -- before the wheel spins, the seed/number are revealed after).
+  CREATE TABLE IF NOT EXISTS roulette_rounds (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    winning_number INTEGER NOT NULL,
+    server_seed    TEXT NOT NULL,
+    hash           TEXT NOT NULL,
+    created_at     TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
