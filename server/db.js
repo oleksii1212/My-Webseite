@@ -29,4 +29,14 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
+
+  -- One row per completed Crash round. Stores the seed/hash so a player can
+  -- verify the crash point was decided before the round started (provably fair).
+  CREATE TABLE IF NOT EXISTS crash_rounds (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    crash_point REAL NOT NULL,
+    server_seed TEXT NOT NULL,
+    hash        TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);

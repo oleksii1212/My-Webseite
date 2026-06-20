@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import { parse as parseCookie } from 'cookie';
 import { config } from './config.js';
 import {
   createUser,
@@ -42,6 +43,22 @@ export function authenticate(req, res, next) {
 export function requireAuth(req, res, next) {
   if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
   next();
+}
+
+/**
+ * Resolve the logged-in user from a raw Cookie header (e.g. a Socket.IO
+ * handshake). Returns the user row or null when anonymous/invalid.
+ */
+export function getUserFromCookieHeader(cookieHeader) {
+  if (!cookieHeader) return null;
+  const token = parseCookie(cookieHeader)[COOKIE_NAME];
+  if (!token) return null;
+  try {
+    const payload = jwt.verify(token, config.jwtSecret);
+    return getUserById(payload.uid) || null;
+  } catch {
+    return null;
+  }
 }
 
 export const authRouter = Router();
