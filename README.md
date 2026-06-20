@@ -2,8 +2,8 @@
 
 A casino-style web app that runs entirely on **virtual coins** — no real money is involved.
 This repository is built step by step as a learning project. It includes the site shell with a
-home lobby, user accounts (register / login), a server-authoritative virtual balance, and two
-real-time games so far: **Crash** and **Roulette**. Blackjack is planned next.
+home lobby, user accounts (register / login), a server-authoritative virtual balance, and three
+real-time games so far: **Crash**, **Roulette** and **Blackjack** (a shared multi-seat table).
 
 ## Tech stack
 
@@ -62,12 +62,14 @@ server/         Backend (Express + Socket.IO)
   auth.js         Register / login / logout, auth middleware
   crash.js        Crash game engine (shared real-time round)
   roulette.js     Roulette game engine (shared real-time round)
+  blackjack.js    Blackjack engine (shared multi-seat table, turn-based round)
 public/         Frontend (served as static files)
   index.html      App shell (sidebar, topbar, auth modal)
   css/style.css   Dark theme
   js/app.js       Auth flow, balance display, home lobby, view router
   js/crash.js     Crash game view
   js/roulette.js  Roulette game view
+  js/blackjack.js Blackjack game view (seats, cards, turn controls)
 data/           SQLite database file (created at runtime, git-ignored)
 ```
 
@@ -83,5 +85,5 @@ data/           SQLite database file (created at runtime, git-ignored)
 1. **Foundation** — accounts, balances, site shell ✅
 2. **Crash** — realtime multiplier game ✅
 3. **Roulette** — realtime European roulette ✅
-4. **Blackjack**
+4. **Blackjack** — shared 7-seat table, turn-based ✅
 5. Profile, game history, leaderboard

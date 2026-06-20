@@ -49,4 +49,14 @@ db.exec(`
     hash           TEXT NOT NULL,
     created_at     TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- One row per completed Blackjack round (provably fair: the shoe is shuffled
+  -- from the server seed, whose hash is shown before any card is dealt).
+  CREATE TABLE IF NOT EXISTS blackjack_rounds (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    dealer_value INTEGER NOT NULL,
+    server_seed  TEXT NOT NULL,
+    hash         TEXT NOT NULL,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);

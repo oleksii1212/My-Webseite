@@ -2,6 +2,7 @@
 
 import { mountCrash } from './crash.js';
 import { mountRoulette } from './roulette.js';
+import { mountBlackjack } from './blackjack.js';
 
 const state = {
   user: null,
@@ -52,8 +53,8 @@ const GAMES = [
     view: 'blackjack',
     icon: '\uD83C\uDCCF',
     title: 'Blackjack',
-    desc: 'Beat the dealer to 21.',
-    status: 'soon',
+    desc: 'Sit at the shared 7-seat table and beat the dealer to 21.',
+    status: 'live',
   },
 ];
 
@@ -168,7 +169,7 @@ const views = {
       <h2 class="section-title">How it works</h2>
       <div class="steps">
         <div class="step"><div class="step__num">1</div><div><strong>Sign up free</strong><p>Get 1000 virtual coins instantly. No real money, ever.</p></div></div>
-        <div class="step"><div class="step__num">2</div><div><strong>Pick a game</strong><p>Crash and Roulette run live, shared rounds with other players.</p></div></div>
+        <div class="step"><div class="step__num">2</div><div><strong>Pick a game</strong><p>Crash, Roulette and Blackjack run live, shared rounds with other players.</p></div></div>
         <div class="step"><div class="step__num">3</div><div><strong>Place your bets</strong><p>Every result is decided on the server and provably fair.</p></div></div>
       </div>
     `;
@@ -186,6 +187,8 @@ function renderView(name) {
     unmountView = mountCrash(el.content, gameDeps);
   } else if (name === 'roulette' && socket) {
     unmountView = mountRoulette(el.content, gameDeps);
+  } else if (name === 'blackjack' && socket) {
+    unmountView = mountBlackjack(el.content, gameDeps);
   } else if (name === 'home') {
     el.content.innerHTML = views.home();
     const heroSignup = el.content.querySelector('#heroSignup');
@@ -194,7 +197,7 @@ function renderView(name) {
       card.addEventListener('click', () => navigate(card.dataset.view)),
     );
   } else {
-    const titles = { blackjack: 'Blackjack', leaderboard: 'Leaderboard', rewards: 'Rewards' };
+    const titles = { leaderboard: 'Leaderboard', rewards: 'Rewards' };
     el.content.innerHTML = views.placeholder(titles[name] || 'Page');
   }
 }
@@ -281,6 +284,7 @@ if (socket) {
   };
   socket.on('crash:balance', onBalance);
   socket.on('roulette:balance', onBalance);
+  socket.on('blackjack:balance', onBalance);
 }
 
 // ---------- Boot ----------

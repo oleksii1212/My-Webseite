@@ -24,4 +24,16 @@ export const config = {
     maxBet: 10000, // max coins per single bet
     historySize: 18, // recent winning numbers kept for the history strip
   },
+  blackjack: {
+    seatCount: 7, // seats at the shared table
+    decks: 6, // decks in the shoe (reshuffled each round, provably fair)
+    bettingMs: 15000, // how long seated players can place/raise bets
+    turnMs: 15000, // per-action time limit before an auto-stand
+    dealerStepMs: 900, // delay between dealer draws (and before settling)
+    resultMs: 6000, // how long results stay on screen before the next round
+    idleMs: 3000, // pause when nobody bet, before re-opening betting
+    maxBet: 10000, // max coins staked on one seat per round
+    maxHands: 4, // max hands a seat can hold after splitting
+    historySize: 16, // recent dealer results kept for the history strip
+  },
 };

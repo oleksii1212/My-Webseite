@@ -10,6 +10,7 @@ import { authenticate, requireAuth, authRouter, getUserFromCookieHeader } from '
 import { getUserById } from './users.js';
 import { initCrash } from './crash.js';
 import { initRoulette } from './roulette.js';
+import { initBlackjack } from './blackjack.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
@@ -56,9 +57,11 @@ io.on('connection', (socket) => {
   socket.emit('server:hello', { message: 'connected' });
 });
 
-// Crash & Roulette: shared, server-authoritative rounds broadcast to all clients.
+// Crash, Roulette & Blackjack: shared, server-authoritative rounds broadcast
+// to all clients.
 initCrash(io);
 initRoulette(io);
+initBlackjack(io);
 
 httpServer.listen(config.port, () => {
   console.log(`GOLDBET server running on http://localhost:${config.port}`);
