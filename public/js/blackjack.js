@@ -84,6 +84,8 @@ export function mountBlackjack(container, deps) {
     countdownTimer: 0,
     phaseEndsAt: 0,
     turnEndsAt: 0,
+    phaseChangedAt: 0, // when the phase last changed (for the click guard)
+    wasMyTurn: false, // whether it was already our turn on the previous state
   };
 
   function mySeatIndex() {
@@ -105,13 +107,19 @@ export function mountBlackjack(container, deps) {
   // ---------- rendering ----------
   function renderHistory() {
     const h = view.s.history || [];
-    els.history.innerHTML = h
+    els.history.classList.toggle('is-empty', h.length === 0);
+    if (h.length === 0) {
+      els.history.innerHTML = '';
+      return;
+    }
+    const chips = h
       .map((r) => {
         const cls = r.blackjack ? 'is-green' : r.bust ? 'is-red' : 'is-black';
         const label = r.blackjack ? 'BJ' : r.bust ? 'X' : r.dealer;
         return `<span class="rhist ${cls}" title="Dealer ${r.dealer}${r.bust ? ' (bust)' : ''}">${label}</span>`;
       })
       .join('');
+    els.history.innerHTML = `<span class="bj__history-label">Recent</span>${chips}`;
   }
 
   function renderDealer() {
@@ -302,10 +310,13 @@ export function mountBlackjack(container, deps) {
     } else if (phase === 'dealer') {
       els.hint.textContent = 'Dealer is drawing…';
     } else {
-      // result / idle
+      // result / idle. Keep a disabled button in the primary slot so "Leave
+      // seat" never lands where "Place bet"/"Hit" sat a moment ago.
       const net = (seat.hands || []).reduce((a, h) => a + (h.result ? h.result.net : 0), 0);
       const settled = (seat.hands || []).some((h) => h.result);
-      els.actions.innerHTML = '<button class="btn btn--ghost" data-act="leave">Leave seat</button>';
+      els.actions.innerHTML =
+        '<button class="btn btn--primary" disabled>Next round…</button>' +
+        '<button class="btn btn--ghost bj__leave" data-act="leave">Leave seat</button>';
       els.hint.textContent = settled
         ? net > 0
           ? `You won ${formatCoins(net)} coins! 🎉`
@@ -365,15 +376,29 @@ export function mountBlackjack(container, deps) {
 
   // ---------- socket events ----------
   function applyState(s) {
+    const prevPhase = view.s ? view.s.phase : null;
     view.s = s;
     view.phaseEndsAt = Date.now() + (s.phaseRemainingMs || 0);
     view.turnEndsAt = Date.now() + (s.turnRemainingMs || 0);
+    if (prevPhase !== s.phase) view.phaseChangedAt = Date.now();
     renderHistory();
     renderDealer();
     renderSeats();
     renderSide();
     renderActions();
     setPhaseText();
+    maybeScrollToTurn();
+  }
+
+  // When it first becomes our turn, bring the action buttons into view so a
+  // player scrolled up at the table doesn't miss their turn.
+  function maybeScrollToTurn() {
+    const idx = mySeatIndex();
+    const myTurn = idx !== -1 && view.s.phase === 'playing' && view.s.activeSeat === idx;
+    if (myTurn && !view.wasMyTurn) {
+      els.actions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    view.wasMyTurn = myTurn;
   }
 
   const handlers = {
@@ -408,6 +433,13 @@ export function mountBlackjack(container, deps) {
   els.actions.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-act]');
     if (!btn) return;
+    // The phase (and therefore the buttons) may have just swapped under the
+    // cursor. Ignore a click that lands right after a change so a tap meant for
+    // "Hit"/"Place bet" can't accidentally bet again or leave the seat.
+    if (Date.now() - view.phaseChangedAt < 600) {
+      flashHint('Round just changed — tap again.');
+      return;
+    }
     const act = btn.dataset.act;
     if (act === 'bet') socket.emit('blackjack:bet', { amount: currentAmount() });
     else if (act === 'clear') socket.emit('blackjack:clear');

@@ -114,8 +114,42 @@ let io = null;
 let phaseTimer = null;
 let turnTimer = null;
 
+// Track how many live sockets each user has, so a seat is only freed once the
+// player has truly left (and not on a transient reconnect or a second tab).
+const connections = new Map(); // userId -> open socket count
+const abandonTimers = new Map(); // userId -> pending seat-removal timeout
+const ABANDON_GRACE_MS = 6000; // wait this long for a reconnect before freeing
+
 function userRoom(userId) {
   return `user:${userId}`;
+}
+
+// Free a seat after its player has been gone for the grace period. Mid-round we
+// let their hands finish and drop them at the next deal instead.
+function scheduleSeatRemoval(userId) {
+  clearTimeout(abandonTimers.get(userId));
+  const timer = setTimeout(() => {
+    abandonTimers.delete(userId);
+    if (connections.get(userId)) return; // reconnected in time
+    const idx = seatOfUser(userId);
+    if (idx === -1) return;
+    const seat = state.seats[idx];
+    if (state.phase === 'betting') {
+      if (seat.baseBet > 0) {
+        adjustBalance(userId, seat.baseBet, 'blackjack_leave_refund');
+        emitBalance(userId);
+      }
+      state.seats[idx] = null;
+      broadcast();
+    } else if (state.phase === 'result' || state.phase === 'idle') {
+      state.seats[idx] = null;
+      broadcast();
+    } else {
+      // playing/dealer: keep their hands in the round, remove at next deal.
+      seat.abandoned = true;
+    }
+  }, ABANDON_GRACE_MS);
+  abandonTimers.set(userId, timer);
 }
 
 function emitBalance(userId) {
@@ -214,7 +248,11 @@ function startBetting() {
   state.activeSeat = null;
   state.activeHand = 0;
 
-  // Keep seated players; reset their per-round hands/bets.
+  // Drop players who disconnected mid-round, then keep the rest and reset their
+  // per-round hands/bets.
+  for (let i = 0; i < state.seats.length; i++) {
+    if (state.seats[i] && state.seats[i].abandoned) state.seats[i] = null;
+  }
   for (const seat of state.seats) {
     if (!seat) continue;
     seat.baseBet = 0;
@@ -599,7 +637,15 @@ export function initBlackjack(socketServer) {
 
   io.on('connection', (socket) => {
     const user = socket.data.user;
-    if (user) socket.join(userRoom(user.id));
+    if (user) {
+      socket.join(userRoom(user.id));
+      connections.set(user.id, (connections.get(user.id) || 0) + 1);
+      // They're back — cancel any pending seat removal.
+      clearTimeout(abandonTimers.get(user.id));
+      abandonTimers.delete(user.id);
+      const idx = seatOfUser(user.id);
+      if (idx !== -1) state.seats[idx].abandoned = false;
+    }
 
     socket.emit('blackjack:state', snapshot());
 
@@ -612,6 +658,17 @@ export function initBlackjack(socketServer) {
     socket.on('blackjack:stand', () => stand(socket));
     socket.on('blackjack:double', () => double(socket));
     socket.on('blackjack:split', () => split(socket));
+
+    socket.on('disconnect', () => {
+      if (!user) return;
+      const remaining = (connections.get(user.id) || 1) - 1;
+      if (remaining <= 0) {
+        connections.delete(user.id);
+        if (seatOfUser(user.id) !== -1) scheduleSeatRemoval(user.id);
+      } else {
+        connections.set(user.id, remaining);
+      }
+    });
   });
 
   startBetting();
