@@ -1417,6 +1417,17 @@ a {
   padding: 13px;
   font-size: 15px;
 }
+.bj__actions .btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.bj__actions .btn:disabled:active {
+  transform: none;
+}
+.bj__leave {
+  flex: 0 0 auto !important;
+  color: var(--danger);
+}
 
 @media (max-width: 980px) {
   .bj {
