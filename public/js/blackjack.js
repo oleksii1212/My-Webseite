@@ -107,13 +107,19 @@ export function mountBlackjack(container, deps) {
   // ---------- rendering ----------
   function renderHistory() {
     const h = view.s.history || [];
-    els.history.innerHTML = h
+    els.history.classList.toggle('is-empty', h.length === 0);
+    if (h.length === 0) {
+      els.history.innerHTML = '';
+      return;
+    }
+    const chips = h
       .map((r) => {
         const cls = r.blackjack ? 'is-green' : r.bust ? 'is-red' : 'is-black';
         const label = r.blackjack ? 'BJ' : r.bust ? 'X' : r.dealer;
         return `<span class="rhist ${cls}" title="Dealer ${r.dealer}${r.bust ? ' (bust)' : ''}">${label}</span>`;
       })
       .join('');
+    els.history.innerHTML = `<span class="bj__history-label">Recent</span>${chips}`;
   }
 
   function renderDealer() {
