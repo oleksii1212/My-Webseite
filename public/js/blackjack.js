@@ -66,6 +66,7 @@ export function mountBlackjack(container, deps) {
   container.innerHTML = TEMPLATE;
 
   const els = {
+    root: container.querySelector('.bj'),
     history: container.querySelector('#bjHistory'),
     dealer: container.querySelector('#bjDealer'),
     phase: container.querySelector('#bjPhase'),
@@ -86,6 +87,8 @@ export function mountBlackjack(container, deps) {
     turnEndsAt: 0,
     phaseChangedAt: 0, // when the phase last changed (for the click guard)
     wasMyTurn: false, // whether it was already our turn on the previous state
+    lastDealerHtml: '', // cached markup so cards don't re-animate on no-op updates
+    lastSeatsHtml: '',
   };
 
   function mySeatIndex() {
@@ -131,10 +134,13 @@ export function mountBlackjack(container, deps) {
       const cls = !d.hideHole && d.value > 21 ? ' is-bust' : d.blackjack ? ' is-bj' : '';
       badge = `<span class="bj__value${cls}">${txt}</span>`;
     }
-    els.dealer.innerHTML = `
+    const html = `
       <div class="bj__dealer-label">Dealer ${badge}</div>
       <div class="bj__cards">${cards || '<div class="card card--ghost"></div><div class="card card--ghost"></div>'}</div>
     `;
+    if (html === view.lastDealerHtml) return;
+    view.lastDealerHtml = html;
+    els.dealer.innerHTML = html;
   }
 
   function handStatusBadge(h) {
@@ -203,7 +209,10 @@ export function mountBlackjack(container, deps) {
   }
 
   function renderSeats() {
-    els.seats.innerHTML = view.s.seats.map(seatHtml).join('');
+    const html = view.s.seats.map(seatHtml).join('');
+    if (html === view.lastSeatsHtml) return;
+    view.lastSeatsHtml = html;
+    els.seats.innerHTML = html;
   }
 
   function renderSide() {
@@ -381,6 +390,8 @@ export function mountBlackjack(container, deps) {
     view.phaseEndsAt = Date.now() + (s.phaseRemainingMs || 0);
     view.turnEndsAt = Date.now() + (s.turnRemainingMs || 0);
     if (prevPhase !== s.phase) view.phaseChangedAt = Date.now();
+    const canBet = mySeatIndex() !== -1 && s.phase === 'betting';
+    els.root.dataset.canbet = canBet ? '1' : '0';
     renderHistory();
     renderDealer();
     renderSeats();
