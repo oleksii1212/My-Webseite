@@ -1165,14 +1165,14 @@ a {
 }
 
 .bj__table {
-  background: radial-gradient(120% 130% at 50% 0%, rgba(0, 224, 138, 0.08), transparent 55%),
+  background: radial-gradient(120% 130% at 50% 0%, rgba(0, 224, 138, 0.1), transparent 55%),
     var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .bj__dealer {
@@ -1194,36 +1194,37 @@ a {
 .bj__cards {
   display: flex;
   gap: 6px;
-  min-height: 64px;
+  min-height: 76px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 /* Playing cards */
 .card {
-  width: 46px;
-  height: 64px;
-  border-radius: 8px;
-  background: #f4f7fb;
+  width: 54px;
+  height: 76px;
+  border-radius: 9px;
+  background: linear-gradient(160deg, #ffffff, #eef2f8);
   color: #1b2330;
   border: 1px solid #cdd6e4;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 5px 6px;
+  padding: 6px 7px;
   font-weight: 800;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  animation: cardIn 0.18s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  transform-origin: top center;
+  animation: cardIn 0.26s cubic-bezier(0.2, 0.8, 0.3, 1.1);
 }
 .card--red {
   color: #c0392b;
 }
 .card__rank {
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1;
 }
 .card__suit {
-  font-size: 18px;
+  font-size: 21px;
   line-height: 1;
   align-self: flex-end;
 }
@@ -1240,11 +1241,11 @@ a {
 @keyframes cardIn {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-14px) rotateX(35deg) scale(0.94);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) rotateX(0) scale(1);
   }
 }
 
@@ -1298,8 +1299,9 @@ a {
 /* Seats */
 .bj__seats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
   gap: 10px;
+  align-items: start;
 }
 
 .bj__seat {
@@ -1310,14 +1312,20 @@ a {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 132px;
+  min-height: 116px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 .bj__seat.is-empty {
   align-items: center;
   justify-content: center;
   border-style: dashed;
   color: var(--text-dim);
-  gap: 10px;
+  gap: 8px;
+  min-height: 76px;
+  padding: 8px;
+}
+.bj__seat.is-empty:hover {
+  border-color: var(--accent);
 }
 .bj__seat.is-mine {
   border-color: var(--accent);
@@ -1325,7 +1333,16 @@ a {
 }
 .bj__seat.is-turn {
   border-color: var(--gold);
-  box-shadow: 0 0 0 1px var(--gold), 0 0 18px rgba(245, 179, 1, 0.4);
+  animation: bjTurnPulse 1.5s ease-in-out infinite;
+}
+@keyframes bjTurnPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(245, 179, 1, 0.32);
+  }
+  50% {
+    box-shadow: 0 0 0 1px var(--gold), 0 0 22px rgba(245, 179, 1, 0.6);
+  }
 }
 
 .bj__seat-head {
@@ -1407,19 +1424,42 @@ a {
 .bj__chip.is-win {
   background: rgba(0, 224, 138, 0.16);
   color: var(--accent);
+  animation: bjChipPop 0.28s ease;
 }
 .bj__chip.is-lose {
   background: rgba(255, 92, 92, 0.16);
   color: var(--danger);
+  animation: bjChipPop 0.28s ease;
 }
 .bj__chip.is-push {
   background: rgba(245, 179, 1, 0.16);
   color: var(--gold);
+  animation: bjChipPop 0.28s ease;
+}
+@keyframes bjChipPop {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Controls */
+.bj__controls {
+  position: sticky;
+  bottom: 12px;
+  z-index: 5;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.35);
+}
 .bj__controls .betpanel__grid {
   grid-template-columns: 1fr;
+}
+/* Bet amount only matters while placing bets — hide it otherwise. */
+.bj:not([data-canbet='1']) .bj__controls .betpanel__grid {
+  display: none;
 }
 .bj__actions {
   display: flex;
