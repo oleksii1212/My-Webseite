@@ -18,8 +18,13 @@ const el = {
   registerBtn: document.getElementById('registerBtn'),
   avatarBtn: document.getElementById('avatarBtn'),
   avatarInitial: document.getElementById('avatarInitial'),
-  balancePill: document.getElementById('balancePill'),
+  userArea: document.getElementById('userArea'),
+  userName: document.getElementById('userName'),
   balanceAmount: document.getElementById('balanceAmount'),
+  homeBtn: document.getElementById('homeBtn'),
+  menuBtn: document.getElementById('menuBtn'),
+  menuDropdown: document.getElementById('menuDropdown'),
+  logoutBtn: document.getElementById('logoutBtn'),
   content: document.getElementById('content'),
   modal: document.getElementById('authModal'),
   authTitle: document.getElementById('authTitle'),
@@ -34,24 +39,33 @@ const el = {
   brand: document.getElementById('brandHome'),
 };
 
+const ICONS = {
+  crash:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="15 7 21 7 21 13"></polyline></svg>',
+  roulette:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"></circle></svg>',
+  blackjack:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 3C9.3 6.6 5 8.8 5 12.4 5 14.9 6.9 16.4 8.9 16.4c1 0 1.9-.4 2.5-1.1-.2 1.8-.8 3-1.8 3.7V20h4.8v-1c-1-.7-1.6-1.9-1.8-3.7.6.7 1.5 1.1 2.5 1.1 2 0 3.9-1.5 3.9-4C19 8.8 14.7 6.6 12 3z"></path></svg>',
+};
+
 const GAMES = [
   {
     view: 'crash',
-    icon: '\uD83D\uDCC8',
+    icon: ICONS.crash,
     title: 'Crash',
     desc: 'Watch the multiplier rise \u2014 cash out before it crashes.',
     status: 'live',
   },
   {
     view: 'roulette',
-    icon: '\uD83C\uDFAF',
+    icon: ICONS.roulette,
     title: 'Roulette',
     desc: 'Bet on numbers or colors and watch the wheel spin.',
     status: 'live',
   },
   {
     view: 'blackjack',
-    icon: '\uD83C\uDCCF',
+    icon: ICONS.blackjack,
     title: 'Blackjack',
     desc: 'Sit at the shared 7-seat table and beat the dealer to 21.',
     status: 'live',
@@ -99,17 +113,27 @@ function reconnectSocket() {
   socket.connect();
 }
 
+function showBalance(n) {
+  el.balanceAmount.textContent = `$ ${formatCoins(n)}`;
+}
+
 function setUser(user) {
   state.user = user;
   const loggedIn = Boolean(user);
   el.loginBtn.hidden = loggedIn;
   el.registerBtn.hidden = loggedIn;
-  el.avatarBtn.hidden = !loggedIn;
-  el.balancePill.hidden = !loggedIn;
+  el.userArea.hidden = !loggedIn;
   if (loggedIn) {
     el.avatarInitial.textContent = user.username.charAt(0).toUpperCase();
-    el.balanceAmount.textContent = formatCoins(user.balance);
+    el.userName.textContent = user.username;
+    showBalance(user.balance);
+  } else {
+    closeMenu();
   }
+}
+
+function closeMenu() {
+  el.menuDropdown.hidden = true;
 }
 
 async function refreshBalance() {
@@ -117,7 +141,7 @@ async function refreshBalance() {
   try {
     const { balance } = await api('/api/balance');
     state.user.balance = balance;
-    el.balanceAmount.textContent = formatCoins(balance);
+    showBalance(balance);
   } catch {
     /* ignore */
   }
@@ -216,11 +240,29 @@ el.switchLink.addEventListener('click', (e) => {
   openModal(state.authMode === 'login' ? 'register' : 'login');
 });
 
-el.avatarBtn.addEventListener('click', async () => {
+async function logout() {
   await api('/api/auth/logout', { method: 'POST' });
   setUser(null);
   reconnectSocket();
   renderView(currentView());
+}
+
+el.menuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  el.menuDropdown.hidden = !el.menuDropdown.hidden;
+});
+
+el.logoutBtn.addEventListener('click', () => {
+  closeMenu();
+  logout();
+});
+
+el.avatarBtn.addEventListener('click', () => navigate('home'));
+
+el.homeBtn.addEventListener('click', () => navigate('home'));
+
+document.addEventListener('click', (e) => {
+  if (!el.menuDropdown.hidden && !e.target.closest('.menu')) closeMenu();
 });
 
 el.authForm.addEventListener('submit', async (e) => {
@@ -280,7 +322,7 @@ if (socket) {
   const onBalance = ({ balance }) => {
     if (!state.user) return;
     state.user.balance = balance;
-    el.balanceAmount.textContent = formatCoins(balance);
+    showBalance(balance);
   };
   socket.on('crash:balance', onBalance);
   socket.on('roulette:balance', onBalance);
