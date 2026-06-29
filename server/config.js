@@ -36,4 +36,10 @@ export const config = {
     maxHands: 4, // max hands a seat can hold after splitting
     historySize: 16, // recent dealer results kept for the history strip
   },
+  // Single-player games (Dice, Mines, Tower, Plinko, Wheel, Poker). Each is
+  // server-authoritative and provably fair; the house keeps ~1% on average.
+  games: {
+    maxBet: 10000, // max coins per bet
+    houseEdge: 0.01, // 1% — applied to every game's payout multipliers
+  },
 };

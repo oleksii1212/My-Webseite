@@ -59,4 +59,20 @@ db.exec(`
     hash         TEXT NOT NULL,
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- One row per completed single-player game round (Dice, Mines, Tower,
+  -- Plinko, Wheel, Poker). The result JSON plus the revealed server seed and
+  -- its pre-shown hash let a player verify the outcome was provably fair.
+  CREATE TABLE IF NOT EXISTS game_rounds (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER NOT NULL,
+    game        TEXT NOT NULL,
+    bet         INTEGER NOT NULL,
+    payout      INTEGER NOT NULL,
+    result      TEXT NOT NULL,
+    server_seed TEXT NOT NULL,
+    hash        TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
 `);

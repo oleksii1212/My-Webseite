@@ -11,6 +11,12 @@ import { getUserById } from './users.js';
 import { initCrash } from './crash.js';
 import { initRoulette } from './roulette.js';
 import { initBlackjack } from './blackjack.js';
+import { initDice } from './dice.js';
+import { initMines } from './mines.js';
+import { initTower } from './tower.js';
+import { initPlinko } from './plinko.js';
+import { initWheel } from './wheel.js';
+import { initPoker } from './poker.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
@@ -62,6 +68,14 @@ io.on('connection', (socket) => {
 initCrash(io);
 initRoulette(io);
 initBlackjack(io);
+
+// Single-player, server-authoritative, provably-fair games.
+initDice(io);
+initMines(io);
+initTower(io);
+initPlinko(io);
+initWheel(io);
+initPoker(io);
 
 httpServer.listen(config.port, () => {
   console.log(`GOLDBET server running on http://localhost:${config.port}`);
