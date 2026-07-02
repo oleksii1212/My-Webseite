@@ -3,6 +3,12 @@
 import { mountCrash } from './crash.js';
 import { mountRoulette } from './roulette.js';
 import { mountBlackjack } from './blackjack.js';
+import { mountDice } from './dice.js';
+import { mountMines } from './mines.js';
+import { mountTower } from './tower.js';
+import { mountPlinko } from './plinko.js';
+import { mountWheel } from './wheel.js';
+import { mountPoker } from './poker.js';
 
 const state = {
   user: null,
@@ -46,6 +52,18 @@ const ICONS = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"></circle></svg>',
   blackjack:
     '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 3C9.3 6.6 5 8.8 5 12.4 5 14.9 6.9 16.4 8.9 16.4c1 0 1.9-.4 2.5-1.1-.2 1.8-.8 3-1.8 3.7V20h4.8v-1c-1-.7-1.6-1.9-1.8-3.7.6.7 1.5 1.1 2.5 1.1 2 0 3.9-1.5 3.9-4C19 8.8 14.7 6.6 12 3z"></path></svg>',
+  dice:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"></rect><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="16" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="16" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="16" cy="16" r="1.3" fill="currentColor" stroke="none"></circle></svg>',
+  mines:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="13" r="7"></circle><line x1="11" y1="13" x2="11" y2="13"></line><path d="M17 7l3-3"></path><path d="M18 4h2.5V6.5"></path><line x1="11" y1="9" x2="11" y2="11"></line></svg>',
+  tower:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="4" rx="1"></rect><rect x="6" y="10" width="12" height="4" rx="1"></rect><rect x="6" y="17" width="12" height="4" rx="1"></rect></svg>',
+  plinko:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="4" r="1.4"></circle><circle cx="8" cy="9" r="1.4"></circle><circle cx="16" cy="9" r="1.4"></circle><circle cx="5" cy="14" r="1.4"></circle><circle cx="12" cy="14" r="1.4"></circle><circle cx="19" cy="14" r="1.4"></circle><circle cx="6" cy="20" r="1.4"></circle><circle cx="12" cy="20" r="1.4"></circle><circle cx="18" cy="20" r="1.4"></circle></svg>',
+  wheel:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="3" x2="12" y2="21"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"></line><line x1="18.4" y1="5.6" x2="5.6" y2="18.4"></line></svg>',
+  poker:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="11" height="15" rx="2"></rect><path d="M17 7l3 1.2a2 2 0 0 1 1.2 2.5l-3 8.2"></path><path d="M8.5 12.5l-1.5 4 4-1 1.5-4z"></path></svg>',
 };
 
 const GAMES = [
@@ -68,6 +86,48 @@ const GAMES = [
     icon: ICONS.blackjack,
     title: 'Blackjack',
     desc: 'Sit at the shared 7-seat table and beat the dealer to 21.',
+    status: 'live',
+  },
+  {
+    view: 'dice',
+    icon: ICONS.dice,
+    title: 'Dice',
+    desc: 'Pick a target and roll under or over it for instant wins.',
+    status: 'live',
+  },
+  {
+    view: 'mines',
+    icon: ICONS.mines,
+    title: 'Mines',
+    desc: 'Reveal gems and dodge the mines \u2014 cash out before you bust.',
+    status: 'live',
+  },
+  {
+    view: 'tower',
+    icon: ICONS.tower,
+    title: 'Tower',
+    desc: 'Climb row by row picking safe tiles for a rising multiplier.',
+    status: 'live',
+  },
+  {
+    view: 'plinko',
+    icon: ICONS.plinko,
+    title: 'Plinko',
+    desc: 'Drop a ball through the pegs into a multiplier bucket.',
+    status: 'live',
+  },
+  {
+    view: 'wheel',
+    icon: ICONS.wheel,
+    title: 'Wheel',
+    desc: 'Spin the wheel of multipliers at low, medium or high risk.',
+    status: 'live',
+  },
+  {
+    view: 'poker',
+    icon: ICONS.poker,
+    title: 'Poker',
+    desc: 'Jacks-or-Better video poker \u2014 hold, draw and hit the pay table.',
     status: 'live',
   },
 ];
@@ -207,12 +267,19 @@ function renderView(name) {
     unmountView = null;
   }
   const gameDeps = { socket, getUser: () => state.user, formatCoins, openModal };
-  if (name === 'crash' && socket) {
-    unmountView = mountCrash(el.content, gameDeps);
-  } else if (name === 'roulette' && socket) {
-    unmountView = mountRoulette(el.content, gameDeps);
-  } else if (name === 'blackjack' && socket) {
-    unmountView = mountBlackjack(el.content, gameDeps);
+  const mounts = {
+    crash: mountCrash,
+    roulette: mountRoulette,
+    blackjack: mountBlackjack,
+    dice: mountDice,
+    mines: mountMines,
+    tower: mountTower,
+    plinko: mountPlinko,
+    wheel: mountWheel,
+    poker: mountPoker,
+  };
+  if (mounts[name] && socket) {
+    unmountView = mounts[name](el.content, gameDeps);
   } else if (name === 'home') {
     el.content.innerHTML = views.home();
     const heroSignup = el.content.querySelector('#heroSignup');
@@ -324,9 +391,9 @@ if (socket) {
     state.user.balance = balance;
     showBalance(balance);
   };
-  socket.on('crash:balance', onBalance);
-  socket.on('roulette:balance', onBalance);
-  socket.on('blackjack:balance', onBalance);
+  ['crash', 'roulette', 'blackjack', 'dice', 'mines', 'tower', 'plinko', 'wheel', 'poker'].forEach(
+    (g) => socket.on(`${g}:balance`, onBalance),
+  );
 }
 
 // ---------- Boot ----------
